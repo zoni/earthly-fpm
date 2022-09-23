@@ -1,0 +1,23 @@
+name: Earthly
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # At 03:47 on the 3rd day of every month
+    - cron: '47 3 3 * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_COLOR: 1
+    steps:
+    - uses: actions/checkout@v3
+    - name: Docker Login
+      run: docker login --username "${{ secrets.QUAY_USERNAME }}" --password "${{ secrets.QUAY_PASSWORD }}" quay.io
+    - name: Download latest earthly
+      run: "sudo /bin/sh -c 'wget https://github.com/earthly/earthly/releases/download/v0.6.24/earthly-linux-amd64 -O /usr/local/bin/earthly && chmod +x /usr/local/bin/earthly'"
+    - name: Run build
+      run: earthly --ci --push +publish
